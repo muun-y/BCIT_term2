@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <stdint.h>
+
+// Function to add two numbers without using arithmetic operators
+int logicaladder(int x, int y, int bitwidth) {
+// Mask x and y to the specified bitwidth
+    int mask = (1 << bitwidth) - 1;
+    x &= mask;
+    y &= mask;
+    
+    while (y != 0) {
+        // carry now contains common set bits of x and y
+        int carry = x & y;
+
+        // Sum of bits of x and y where at least one of the bits is not set
+        x = x ^ y;
+
+        // Carry is shifted by one so that adding it to x gives the required sum
+y = (carry << 1) & mask;
+    }
+    return x;
+}
+
+// Function to detect overflow and perform right shift if needed
+int detectoverflow(int bitwidth, int result, int shift) {
+    // Determine the maximum and minimum values for the given bitwidth
+    int64_t max_value = (1LL << (bitwidth - 1)) - 1;
+    int64_t min_value = -(1LL << (bitwidth - 1));
+
+    // Cast result to int64_t to avoid overflow when comparing
+int64_t extended_result = (int64_t)result;
+
+// Check for overflow
+if (extended_result > max_value) {
+    
+    // If there is an overflow, perform a right shift
+    return ((int64_t)result & ((1LL << bitwidth) - 1)) >> shift;
+}
+
+    // If there is no overflow, return the original result
+    return result; 
+}
+
+int main(int argc, char *argv[]) {
+    // Check for correct number of arguments
+    if (argc != 5) {
+        printf("Usage: %s <bitwidth> <number1> <number2> <shift>\n", argv[0]);
+        return 1;
+    }
+
+    // Parse arguments
+    int bitwidth = atoi(argv[1]);
+    int number1 = atoi(argv[2]);
+    int number2 = atoi(argv[3]);
+    int shift = atoi(argv[4]);
+
+    // Validate bitwidth
+    if (bitwidth != 8 && bitwidth != 16 && bitwidth != 32 && bitwidth != 64) {
+        printf("Invalid bitwidth. Must be one of the following: 8, 16, 32, 64.\n");
+        return 1;
+    }
+
+    // Perform addition without using + or -
+    int sum = logicaladder(number1, number2, bitwidth);
+
+    // Check for overflow and right shift if needed
+    int result = detectoverflow(bitwidth, sum, shift);
+
+    if (result != sum) {
+        printf("Result after right shift: %d\n", result);
+        printf("Overflow detected within the specified bitwidth.\n");
+    }else{
+    	printf("Result of addition: %d\n", sum); 
+    }
+
+    return 0;
+}
